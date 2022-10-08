@@ -194,6 +194,31 @@ void test_sin()
         sin((pi / 2) * i);
 }
 
+void file_write()
+{
+   char file_name[192] = { 0 };
+   tmpnam(file_name);
+   //DX_DEBUG("tmp", "%s", file_name);
+   char text[1025] = { 0 };
+   for(int i = 0; i < 1022; i++)
+    text[i] = 'x';
+   text[1022] = '\n';
+   FILE *fptr;
+   fptr = fopen(file_name, "w");
+
+   if(fptr == NULL)
+   {
+      DX_ERROR("file", "cannot access to write files");   
+      exit(1);             
+   }
+  
+   for(int i = 0; i < 2 * 1024; i++)
+      fprintf(fptr,"%s", text);
+
+   fclose(fptr);
+   remove(file_name);
+}
+
 void run_benchmark()
 {
     auto cpu_1 = BENCHMARK(test_sin, 5) / 50000;
@@ -201,6 +226,11 @@ void run_benchmark()
     DX_DEBUG("cpu", "cpu = %lld score", cpu_1);
     DX_DEBUG("cpu", "cpu multithread = %lld score", cpu_1_async);
     DX_DEBUG("cpu", "multicore performance improvement = %f", (double)cpu_1_async / cpu_1);
+    auto disk_1 = BENCHMARK(file_write, 5);
+    auto disk_2 = BENCHMARK_ASYNC(file_write, 5);
+    DX_DEBUG("hdd", "hdd disk = %lld score", disk_1);
+    DX_DEBUG("hdd", "hdd async disk = %lld score", disk_2);
+    file_write();
 }
 
 void start()
